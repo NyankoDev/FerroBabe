@@ -1,0 +1,11 @@
+[package]
+name = "FerroBabe"
+version = "0.1.0"
+edition = "2024"
+
+[lib]
+name = "ferro_babe"
+
+[dependencies]
+rust-asm = "0.2.1"
+thiserror = "2"

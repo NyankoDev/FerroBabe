@@ -2,6 +2,16 @@
 
 FerroBabe is a Lightweight Rust library for disassembling Java class.
 
+## Install
+
+FerroBabe is published on [crates.io](https://crates.io/crates/FerroBabe):
+
+```bash
+cargo add FerroBabe
+```
+
+API documentation is hosted on [docs.rs/FerroBabe](https://docs.rs/FerroBabe).
+
 ## Build
 - Rust
 - cargo

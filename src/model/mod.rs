@@ -7,6 +7,7 @@ mod class;
 mod constant;
 mod instruction;
 mod member;
+mod stack_map;
 
 pub use class::{Class, ClassVersion, Disassembly};
 pub use constant::{ConstantPoolIndex, ConstantRef};
@@ -14,3 +15,4 @@ pub use instruction::{
     ByteOffset, Instruction, InstructionOperand, LdcValueRef, MemberReference, SwitchTarget,
 };
 pub use member::{ExceptionHandler, Field, Method};
+pub use stack_map::{StackMapFrame, StackMapFrameKind, VerificationType, VerificationTypes};

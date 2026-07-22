@@ -1,8 +1,8 @@
-use rust_asm::class_reader::ExceptionTableEntry;
+use rust_asm::class_reader::{AttributeInfo, ExceptionTableEntry};
 use rust_asm::constant_pool::CpInfo;
 use rust_asm::nodes::{FieldNode, MethodNode};
 
-use super::{ByteOffset, Instruction};
+use super::{ByteOffset, Instruction, StackMapFrame};
 
 #[derive(Debug, Clone, Copy)]
 /// A borrowed view of a field declaration.
@@ -114,6 +114,30 @@ impl<'a> Method<'a> {
             .exception_table
             .iter()
             .map(|entry| ExceptionHandler::new(entry, self.constant_pool))
+    }
+
+    /// Iterates over `StackMapTable` frames when the method has that attribute.
+    ///
+    /// The class-file format stores frames as deltas from preceding frames. The
+    /// returned views preserve that encoding and resolve object verification
+    /// types against the method's constant pool.
+    pub fn stack_map_frames(
+        &self,
+    ) -> Option<impl ExactSizeIterator<Item = StackMapFrame<'a>> + '_> {
+        let entries = self
+            .inner
+            .code_attributes
+            .iter()
+            .find_map(|attribute| match attribute {
+                AttributeInfo::StackMapTable { entries } => Some(entries),
+                _ => None,
+            })?;
+
+        Some(
+            entries
+                .iter()
+                .map(|frame| StackMapFrame::new(frame, self.constant_pool)),
+        )
     }
 }
 

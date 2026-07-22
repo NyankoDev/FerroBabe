@@ -10,6 +10,10 @@ pub struct ClassVersion {
 }
 
 impl ClassVersion {
+    pub(crate) const fn new(minor: u16, major: u16) -> Self {
+        Self { minor, major }
+    }
+
     #[must_use]
     pub fn minor(self) -> u16 {
         self.minor
@@ -98,18 +102,41 @@ impl Class {
 
 #[derive(Debug, Clone)]
 pub struct Disassembly {
-    class: Class,
+    header: ClassVersion,
+    class: Option<Class>,
     diagnostics: Vec<Diagnostic>,
 }
 
 impl Disassembly {
-    pub(crate) fn new(class: Class, diagnostics: Vec<Diagnostic>) -> Self {
-        Self { class, diagnostics }
+    pub(crate) fn complete(class: Class) -> Self {
+        Self {
+            header: class.version(),
+            class: Some(class),
+            diagnostics: Vec::new(),
+        }
+    }
+
+    pub(crate) fn partial(header: ClassVersion, diagnostics: Vec<Diagnostic>) -> Self {
+        Self {
+            header,
+            class: None,
+            diagnostics,
+        }
     }
 
     #[must_use]
-    pub fn class(&self) -> &Class {
-        &self.class
+    pub fn version(&self) -> ClassVersion {
+        self.header
+    }
+
+    #[must_use]
+    pub fn is_complete(&self) -> bool {
+        self.class.is_some()
+    }
+
+    #[must_use]
+    pub fn class(&self) -> Option<&Class> {
+        self.class.as_ref()
     }
 
     #[must_use]

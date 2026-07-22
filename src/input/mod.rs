@@ -40,3 +40,9 @@ impl ClassHeader {
         })
     }
 }
+
+impl From<ClassHeader> for crate::model::ClassVersion {
+    fn from(value: ClassHeader) -> Self {
+        Self::new(value.minor_version, value.major_version)
+    }
+}

@@ -1,4 +1,5 @@
 use rust_asm::class_reader::ClassReader;
+use std::borrow::Cow;
 
 use crate::error::FerroBabeError;
 use crate::input::{ClassHeader, MAX_CLASS_MAJOR_VERSION};
@@ -18,12 +19,12 @@ pub(crate) fn decode_class(bytes: &[u8], header: ClassHeader) -> Result<Class, F
     Ok(Class::from_node(node))
 }
 
-fn adjust_version_for_rust_asm(bytes: &[u8], header: ClassHeader) -> Vec<u8> {
+fn adjust_version_for_rust_asm(bytes: &[u8], header: ClassHeader) -> Cow<'_, [u8]> {
     if header.major_version < MAX_CLASS_MAJOR_VERSION {
-        return bytes.to_vec();
+        return Cow::Borrowed(bytes);
     }
 
     let mut adjusted = bytes.to_vec();
     adjusted[6..8].copy_from_slice(&RUST_ASM_MAX_CLASS_MAJOR_VERSION.to_be_bytes());
-    adjusted
+    Cow::Owned(adjusted)
 }

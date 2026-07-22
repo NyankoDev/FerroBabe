@@ -14,6 +14,7 @@ pub use options::{DisassemblerBuilder, DisassemblerOptions, RecoveryMode};
 
 use decode::decode_class;
 use input::ClassHeader;
+use std::io::Read;
 
 #[derive(Debug, Clone, Default)]
 pub struct Disassembler {
@@ -38,9 +39,21 @@ impl Disassembler {
 
     pub fn parse(&self, bytes: &[u8]) -> Result<Disassembly, FerroBabeError> {
         let header = ClassHeader::read(bytes)?;
-        let class = decode_class(bytes, header)?;
+        match decode_class(bytes, header) {
+            Ok(class) => Ok(Disassembly::complete(class)),
+            Err(error) if self.options.recovery() == RecoveryMode::BestEffort => Ok(
+                Disassembly::partial(header.into(), vec![Diagnostic::from_decode_error(&error)]),
+            ),
+            Err(error) => Err(error),
+        }
+    }
 
-        Ok(Disassembly::new(class, Vec::new()))
+    pub fn parse_reader<R: Read>(&self, mut reader: R) -> Result<Disassembly, FerroBabeError> {
+        let mut bytes = Vec::new();
+        reader
+            .read_to_end(&mut bytes)
+            .map_err(|source| FerroBabeError::InputRead { source })?;
+        self.parse(&bytes)
     }
 
     pub fn disassemble(&self, bytes: &[u8]) -> Result<String, FerroBabeError> {
@@ -53,6 +66,9 @@ impl Disassembler {
         formatter: &F,
     ) -> Result<String, FerroBabeError> {
         let disassembly = self.parse(bytes)?;
-        formatter.format(disassembly.class())
+        let class = disassembly
+            .class()
+            .ok_or(FerroBabeError::IncompleteDisassembly)?;
+        formatter.format(class)
     }
 }

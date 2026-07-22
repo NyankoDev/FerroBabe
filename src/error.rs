@@ -14,6 +14,12 @@ pub enum FerroBabeError {
     )]
     UnsupportedVersion { major: u16, minor: u16 },
 
+    #[error("class input could not be read: {source}")]
+    InputRead {
+        #[source]
+        source: std::io::Error,
+    },
+
     #[error("class-file decoding failed: {source}")]
     Decode {
         #[source]
@@ -25,4 +31,7 @@ pub enum FerroBabeError {
         #[source]
         source: std::fmt::Error,
     },
+
+    #[error("a partial class-file result cannot be formatted")]
+    IncompleteDisassembly,
 }

@@ -1,3 +1,8 @@
+//! Borrowed views over data decoded from a Java class file.
+//!
+//! The types in this module expose immutable information owned by a [`Class`]. Iterators and
+//! references returned from a class, field, or method are valid only while that owner is alive.
+
 mod class;
 mod constant;
 mod instruction;

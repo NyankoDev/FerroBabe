@@ -5,6 +5,7 @@ use rust_asm::nodes::{FieldNode, MethodNode};
 use super::{ByteOffset, Instruction};
 
 #[derive(Debug, Clone, Copy)]
+/// A borrowed view of a field declaration.
 pub struct Field<'a> {
     inner: &'a FieldNode,
 }
@@ -14,16 +15,19 @@ impl<'a> Field<'a> {
         Self { inner }
     }
 
+    /// Returns the raw field access-flag bitset.
     #[must_use]
     pub fn access_flags(&self) -> u16 {
         self.inner.access_flags
     }
 
+    /// Returns the field name exactly as stored in the class file.
     #[must_use]
     pub fn name(&self) -> &str {
         &self.inner.name
     }
 
+    /// Returns the JVM field descriptor.
     #[must_use]
     pub fn descriptor(&self) -> &str {
         &self.inner.descriptor
@@ -31,6 +35,7 @@ impl<'a> Field<'a> {
 }
 
 #[derive(Debug, Clone, Copy)]
+/// A borrowed view of a method declaration and its optional code.
 pub struct Method<'a> {
     inner: &'a MethodNode,
     constant_pool: &'a [CpInfo],
@@ -44,36 +49,52 @@ impl<'a> Method<'a> {
         }
     }
 
+    /// Returns the raw method access-flag bitset.
     #[must_use]
     pub fn access_flags(&self) -> u16 {
         self.inner.access_flags
     }
 
+    /// Returns the method name exactly as stored in the class file.
     #[must_use]
     pub fn name(&self) -> &str {
         &self.inner.name
     }
 
+    /// Returns the JVM method descriptor.
     #[must_use]
     pub fn descriptor(&self) -> &str {
         &self.inner.descriptor
     }
 
+    /// Returns whether this method has a `Code` attribute.
+    ///
+    /// Abstract and native methods normally return `false`.
     #[must_use]
     pub fn has_code(&self) -> bool {
         self.inner.has_code
     }
 
+    /// Returns the `Code` attribute's declared maximum operand-stack depth.
+    ///
+    /// Returns zero for methods without code.
     #[must_use]
     pub fn max_stack(&self) -> u16 {
         self.inner.max_stack
     }
 
+    /// Returns the `Code` attribute's declared maximum local-variable count.
+    ///
+    /// Returns zero for methods without code.
     #[must_use]
     pub fn max_locals(&self) -> u16 {
         self.inner.max_locals
     }
 
+    /// Iterates over bytecode instructions in original order when code is present.
+    ///
+    /// Returns `None` for methods without a `Code` attribute. Each instruction retains its
+    /// original bytecode offset and borrows from this method.
     pub fn instructions(&self) -> Option<impl ExactSizeIterator<Item = Instruction<'a>> + '_> {
         self.inner.has_code.then(|| {
             self.inner
@@ -85,6 +106,9 @@ impl<'a> Method<'a> {
         })
     }
 
+    /// Iterates over exception-table entries in class-file order.
+    ///
+    /// Methods without code return an empty iterator.
     pub fn exception_handlers(&self) -> impl ExactSizeIterator<Item = ExceptionHandler<'a>> + '_ {
         self.inner
             .exception_table
@@ -94,6 +118,7 @@ impl<'a> Method<'a> {
 }
 
 #[derive(Debug, Clone, Copy)]
+/// One protected bytecode range and its exception handler.
 pub struct ExceptionHandler<'a> {
     start: ByteOffset,
     end: ByteOffset,
@@ -115,21 +140,27 @@ impl<'a> ExceptionHandler<'a> {
         }
     }
 
+    /// Returns the inclusive start offset of the protected range.
     #[must_use]
     pub const fn start(&self) -> ByteOffset {
         self.start
     }
 
+    /// Returns the exclusive end offset of the protected range.
     #[must_use]
     pub const fn end(&self) -> ByteOffset {
         self.end
     }
 
+    /// Returns the bytecode offset where the handler begins.
     #[must_use]
     pub const fn handler(&self) -> ByteOffset {
         self.handler
     }
 
+    /// Returns the caught exception's internal class name.
+    ///
+    /// Returns `None` for a catch-all handler or when the referenced class could not be resolved.
     #[must_use]
     pub const fn catch_type(&self) -> Option<&'a str> {
         self.catch_type

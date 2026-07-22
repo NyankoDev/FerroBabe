@@ -9,6 +9,11 @@ use super::Formatter;
 use super::opcode::mnemonic;
 
 #[derive(Debug, Default, Clone, Copy)]
+/// FerroBabe's compact formatter for bytecode-oriented inspection.
+///
+/// The formatter preserves instruction order and prints bytecode offsets, raw descriptors,
+/// constant-pool references, branch destinations, and exception-handler ranges. It does not
+/// reconstruct source-level control flow.
 pub struct FerroFormatter;
 
 impl Formatter for FerroFormatter {

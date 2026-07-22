@@ -1,12 +1,14 @@
 mod decode;
 mod diagnostic;
 mod error;
+pub mod format;
 mod input;
 pub mod model;
 mod options;
 
 pub use diagnostic::{Diagnostic, DiagnosticSeverity, DiagnosticStage};
 pub use error::FerroBabeError;
+pub use format::{FerroFormatter, Formatter};
 pub use model::{Class, ClassVersion, Disassembly};
 pub use options::{DisassemblerBuilder, DisassemblerOptions, RecoveryMode};
 
@@ -39,5 +41,18 @@ impl Disassembler {
         let class = decode_class(bytes, header)?;
 
         Ok(Disassembly::new(class, Vec::new()))
+    }
+
+    pub fn disassemble(&self, bytes: &[u8]) -> Result<String, FerroBabeError> {
+        self.disassemble_with(bytes, &FerroFormatter)
+    }
+
+    pub fn disassemble_with<F: Formatter>(
+        &self,
+        bytes: &[u8],
+        formatter: &F,
+    ) -> Result<String, FerroBabeError> {
+        let disassembly = self.parse(bytes)?;
+        formatter.format(disassembly.class())
     }
 }

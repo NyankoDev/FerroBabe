@@ -19,4 +19,10 @@ pub enum FerroBabeError {
         #[source]
         source: ClassReadError,
     },
+
+    #[error("formatted output could not be written")]
+    Format {
+        #[source]
+        source: std::fmt::Error,
+    },
 }
